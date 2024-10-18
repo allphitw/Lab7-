@@ -1,51 +1,45 @@
-#pragma once
-
 #ifndef BINARYSEARCHTREE_H
 #define BINARYSEARCHTREE_H
 
+#include <iostream>
 #include <string>
-using namespace std;
 
-// Node structure for Binary Search Tree
-struct Node {
-    Node* left, * right;
-    string data;
+class Node {
+public:
+    std::string data;
+    Node* left;
+    Node* right;
+    int height;
 
-    Node(const string& data);
-    int height; // Height of the node for AVL balancing
-
+    Node(const std::string& data);
 };
 
-// Binary Search Tree class
 class BinarySearchTree {
 public:
-    BinarySearchTree(); // Constructor
-    ~BinarySearchTree(); // Destructor
-    void Insert(const string& data); // Insert a new node
-    string Find(const string& data) const; // Find a node
-    int Size() const; // Get the size of the tree
-    void EmptyTree(); // Empty the tree
-    string Remove(const string& data); // Remove a node
-    void PrintTree(const string& order) const; // Print the tree in different orders
+    BinarySearchTree();
+    ~BinarySearchTree();
+
+    void Insert(const std::string& data);
+    void Remove(const std::string& data);
+    std::string Find(const std::string& data) const;
+    int Size() const;
+    void PrintTree(const std::string& order) const;
 
 private:
     Node* root;
 
-    // Helper functions
-    Node* Insert(Node* node, const string& data);
-    string Find(Node* node, const string& data) const;
-    int SizeHelper(Node* node) const;
-    Node* EmptyTreeHelper(Node* node);
-    string RemoveHelper(Node*& node, const string& data);
+    Node* Insert(Node* node, const std::string& data);
+    Node* RemoveHelper(Node* node, const std::string& data);
     Node* FindMin(Node* node);
-    void PrintTreeHelper(Node* node, const string& order, int level) const;
-
-    // AVL tree balancing functions
-    int GetHeight(Node* node) const; // Get the height of a node
-    int GetBalance(Node* node) const; // Get the balance factor of a node
-    Node* RotateLeft(Node* x); // Perform left rotation
-    Node* RotateRight(Node* y); // Perform right rotation
-
+    int height(Node* node) const;
+    int getBalance(Node* node) const;
+    Node* rightRotate(Node* y);
+    Node* leftRotate(Node* x);
+    void PrintTreeHelper(Node* node, const std::string& order, int level) const;
+    void EmptyTree();
+    Node* EmptyTreeHelper(Node* node);
+    int SizeHelper(Node* node) const;
 };
 
-#endif // BINARYSEARCHTREE_
+#endif
+
