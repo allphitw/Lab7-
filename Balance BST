@@ -1,182 +1,259 @@
 #include "BinarySearchTree.h"
 #include <iostream>
-#include <algorithm> // For max
+#include <algorithm>
+
 using namespace std;
 
 // Node constructor
-Node::Node(const string& data)
-    : data(data), left(nullptr), right(nullptr), height(1) {} // Initialize height as 1
+Node::Node(const std::string& data) : data(data), left(nullptr), right(nullptr), height(1) {}
 
-// BinarySearchTree constructor
+// Binary Search Tree constructor
 BinarySearchTree::BinarySearchTree() : root(nullptr) {}
 
-// BinarySearchTree destructor
+// Destructor
 BinarySearchTree::~BinarySearchTree() {
     EmptyTree();
 }
 
-// Insert a new node (AVL-balanced)
-void BinarySearchTree::Insert(const string& data) {
+// Insert a new node into the tree
+void BinarySearchTree::Insert(const std::string& data) {
     root = Insert(root, data);
 }
 
-// Remove a node (AVL-balanced)
-string BinarySearchTree::Remove(const string& data) {
-    return RemoveHelper(root, data);
-}
-
-// Helper: Insert a new node with AVL balancing
-Node* BinarySearchTree::Insert(Node* node, const string& data) {
+// Recursive helper to insert a node and maintain AVL balance
+Node* BinarySearchTree::Insert(Node* node, const std::string& data) {
     // Normal BST insertion
     if (node == nullptr) {
         return new Node(data);
     }
+
     if (data < node->data) {
         node->left = Insert(node->left, data);
     }
-    else if (data > node->data) {
+    else {
         node->right = Insert(node->right, data);
     }
-    else {
-        return node; // Duplicate data not allowed
-    }
 
-    // Update the height of the current node
-    node->height = 1 + max(GetHeight(node->left), GetHeight(node->right));
+    // Update height
+    node->height = 1 + max(height(node->left), height(node->right));
 
-    // Get the balance factor and balance the node if necessary
-    int balance = GetBalance(node);
+    // Get the balance factor
+    int balance = getBalance(node);
 
-    // Left Left Case (single right rotation)
-    if (balance > 1 && data < node->left->data) {
-        return RotateRight(node);
-    }
+    // If this node becomes unbalanced, there are 4 cases
 
-    // Right Right Case (single left rotation)
-    if (balance < -1 && data > node->right->data) {
-        return RotateLeft(node);
-    }
+    // Left Left Case
+    if (balance > 1 && data < node->left->data)
+        return rightRotate(node);
 
-    // Left Right Case (left-right rotation)
+    // Right Right Case
+    if (balance < -1 && data > node->right->data)
+        return leftRotate(node);
+
+    // Left Right Case
     if (balance > 1 && data > node->left->data) {
-        node->left = RotateLeft(node->left);
-        return RotateRight(node);
+        node->left = leftRotate(node->left);
+        return rightRotate(node);
     }
 
-    // Right Left Case (right-left rotation)
+    // Right Left Case
     if (balance < -1 && data < node->right->data) {
-        node->right = RotateRight(node->right);
-        return RotateLeft(node);
+        node->right = rightRotate(node->right);
+        return leftRotate(node);
     }
 
     return node; // Return the (unchanged) node pointer
 }
 
-// Helper: Remove a node with AVL balancing
-string BinarySearchTree::RemoveHelper(Node*& node, const string& data) {
+// Remove a node with the given data
+void BinarySearchTree::Remove(const std::string& data) {
+    root = RemoveHelper(root, data);
+}
+
+// Recursive helper to remove a node
+Node* BinarySearchTree::RemoveHelper(Node* node, const std::string& data) {
     if (node == nullptr) {
-        return ""; // Not found
+        return node;
     }
 
-    // Normal BST deletion
     if (data < node->data) {
-        return RemoveHelper(node->left, data);
+        node->left = RemoveHelper(node->left, data);
     }
     else if (data > node->data) {
-        return RemoveHelper(node->right, data);
+        node->right = RemoveHelper(node->right, data);
     }
     else {
-        // Node with one or no children
+        // Node with one child or no child
         if (node->left == nullptr || node->right == nullptr) {
             Node* temp = node->left ? node->left : node->right;
             delete node;
-            node = temp;
+            return temp; // Return the new child
         }
-        else {
-            // Node with two children
-            Node* successor = FindMin(node->right);
-            node->data = successor->data;
-            RemoveHelper(node->right, successor->data);
-        }
+
+        // Node with two children: Get the inorder successor (smallest in the right subtree)
+        Node* successor = FindMin(node->right);
+        node->data = successor->data; // Copy the inorder successor's data to this node
+        node->right = RemoveHelper(node->right, successor->data); // Delete the inorder successor
     }
 
-    // If the tree has only one node, return
-    if (node == nullptr) {
-        return "";
-    }
+    // Update height of the current node
+    node->height = 1 + max(height(node->left), height(node->right));
 
-    // Update height of current node
-    node->height = 1 + max(GetHeight(node->left), GetHeight(node->right));
-
-    // Get the balance factor and balance the node if necessary
-    int balance = GetBalance(node);
+    // Balance the node
+    int balance = getBalance(node);
 
     // Left Left Case
-    if (balance > 1 && GetBalance(node->left) >= 0) {
-        return RotateRight(node)->data;
-    }
+    if (balance > 1 && getBalance(node->left) >= 0)
+        return rightRotate(node);
 
     // Left Right Case
-    if (balance > 1 && GetBalance(node->left) < 0) {
-        node->left = RotateLeft(node->left);
-        return RotateRight(node)->data;
+    if (balance > 1 && getBalance(node->left) < 0) {
+        node->left = leftRotate(node->left);
+        return rightRotate(node);
     }
 
     // Right Right Case
-    if (balance < -1 && GetBalance(node->right) <= 0) {
-        return RotateLeft(node)->data;
-    }
+    if (balance < -1 && getBalance(node->right) <= 0)
+        return leftRotate(node);
 
     // Right Left Case
-    if (balance < -1 && GetBalance(node->right) > 0) {
-        node->right = RotateRight(node->right);
-        return RotateLeft(node)->data;
+    if (balance < -1 && getBalance(node->right) > 0) {
+        node->right = rightRotate(node->right);
+        return leftRotate(node);
     }
 
-    return node->data;
+    return node; // Return the (unchanged) node pointer
 }
 
-// Helper: Rotate right (single rotation)
-Node* BinarySearchTree::RotateRight(Node* y) {
+// Find the smallest node (successor)
+Node* BinarySearchTree::FindMin(Node* node) {
+    while (node && node->left != nullptr) {
+        node = node->left;
+    }
+    return node;
+}
+
+// Get the height of the tree
+int BinarySearchTree::height(Node* node) const {
+    if (node == nullptr) {
+        return 0;
+    }
+    return node->height;
+}
+
+// Get balance factor of node
+int BinarySearchTree::getBalance(Node* node) const {
+    if (node == nullptr) {
+        return 0;
+    }
+    return height(node->left) - height(node->right);
+}
+
+// Right rotate subtree rooted with y
+Node* BinarySearchTree::rightRotate(Node* y) {
     Node* x = y->left;
     Node* T2 = x->right;
 
-    // Perform rotation
     x->right = y;
     y->left = T2;
 
     // Update heights
-    y->height = 1 + max(GetHeight(y->left), GetHeight(y->right));
-    x->height = 1 + max(GetHeight(x->left), GetHeight(x->right));
+    y->height = 1 + max(height(y->left), height(y->right));
+    x->height = 1 + max(height(x->left), height(x->right));
 
-    // Return new root
-    return x;
+    return x; // Return new root
 }
 
-// Helper: Rotate left (single rotation)
-Node* BinarySearchTree::RotateLeft(Node* x) {
+// Left rotate subtree rooted with x
+Node* BinarySearchTree::leftRotate(Node* x) {
     Node* y = x->right;
     Node* T2 = y->left;
 
-    // Perform rotation
     y->left = x;
     x->right = T2;
 
     // Update heights
-    x->height = 1 + max(GetHeight(x->left), GetHeight(x->right));
-    y->height = 1 + max(GetHeight(y->left), GetHeight(y->right));
+    x->height = 1 + max(height(x->left), height(x->right));
+    y->height = 1 + max(height(y->left), height(y->right));
 
-    // Return new root
-    return y;
+    return y; // Return new root
 }
 
-// Helper: Get the height of a node
-int BinarySearchTree::GetHeight(Node* node) const {
-    return node == nullptr ? 0 : node->height;
+// Return the size of the tree (number of nodes)
+int BinarySearchTree::Size() const {
+    return SizeHelper(root);
 }
 
-// Helper: Get the balance factor of a node
-int BinarySearchTree::GetBalance(Node* node) const {
-    return node == nullptr ? 0 : GetHeight(node->left) - GetHeight(node->right);
+// Recursive helper to count nodes
+int BinarySearchTree::SizeHelper(Node* node) const {
+    if (node == nullptr) {
+        return 0;
+    }
+    return 1 + SizeHelper(node->left) + SizeHelper(node->right); // Count all nodes
 }
 
+// Clear the entire tree
+void BinarySearchTree::EmptyTree() {
+    root = EmptyTreeHelper(root);
+}
+
+// Recursive helper to delete all nodes
+Node* BinarySearchTree::EmptyTreeHelper(Node* node) {
+    if (node != nullptr) {
+        EmptyTreeHelper(node->left);
+        EmptyTreeHelper(node->right);
+        delete node; // Delete current node
+        node = nullptr; // Avoid dangling pointers
+    }
+    return nullptr;
+}
+
+// Print the tree in the specified order
+void BinarySearchTree::PrintTree(const std::string& order) const {
+    PrintTreeHelper(root, order, 0);
+}
+
+// Recursive helper to print the tree
+void BinarySearchTree::PrintTreeHelper(Node* node, const std::string& order, int level) const {
+    if (node == nullptr) {
+        return;
+    }
+
+    if (order == "inorder") {
+        PrintTreeHelper(node->left, order, level + 1);
+        cout << string(level * 2, ' ') << node->data << endl;
+        PrintTreeHelper(node->right, order, level + 1);
+    }
+    else if (order == "preorder") {
+        cout << string(level * 2, ' ') << node->data << endl;
+        PrintTreeHelper(node->left, order, level + 1);
+        PrintTreeHelper(node->right, order, level + 1);
+    }
+    else if (order == "postorder") {
+        PrintTreeHelper(node->left, order, level + 1);
+        PrintTreeHelper(node->right, order, level + 1);
+        cout << string(level * 2, ' ') << node->data << endl;
+    }
+}
+
+int main() {
+    BinarySearchTree bst;
+    bst.Insert("1");
+    bst.Insert("5");
+    bst.Insert("6");
+    bst.Insert("7");
+    bst.Insert("9");
+    bst.Insert("10");
+    bst.Insert("4");
+    bst.Insert("3");
+    bst.Insert("12");
+
+    std::cout << "Inorder traversal of the AVL tree is:\n";
+    bst.PrintTree("inorder");
+
+    bst.Remove("5");
+    std::cout << "\nInorder traversal after removing B:\n";
+    bst.PrintTree("inorder");
+
+    return 0;
+}
