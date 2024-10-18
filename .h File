@@ -1,0 +1,51 @@
+#pragma once
+
+#ifndef BINARYSEARCHTREE_H
+#define BINARYSEARCHTREE_H
+
+#include <string>
+using namespace std;
+
+// Node structure for Binary Search Tree
+struct Node {
+    Node* left, * right;
+    string data;
+
+    Node(const string& data);
+    int height; // Height of the node for AVL balancing
+
+};
+
+// Binary Search Tree class
+class BinarySearchTree {
+public:
+    BinarySearchTree(); // Constructor
+    ~BinarySearchTree(); // Destructor
+    void Insert(const string& data); // Insert a new node
+    string Find(const string& data) const; // Find a node
+    int Size() const; // Get the size of the tree
+    void EmptyTree(); // Empty the tree
+    string Remove(const string& data); // Remove a node
+    void PrintTree(const string& order) const; // Print the tree in different orders
+
+private:
+    Node* root;
+
+    // Helper functions
+    Node* Insert(Node* node, const string& data);
+    string Find(Node* node, const string& data) const;
+    int SizeHelper(Node* node) const;
+    Node* EmptyTreeHelper(Node* node);
+    string RemoveHelper(Node*& node, const string& data);
+    Node* FindMin(Node* node);
+    void PrintTreeHelper(Node* node, const string& order, int level) const;
+
+    // AVL tree balancing functions
+    int GetHeight(Node* node) const; // Get the height of a node
+    int GetBalance(Node* node) const; // Get the balance factor of a node
+    Node* RotateLeft(Node* x); // Perform left rotation
+    Node* RotateRight(Node* y); // Perform right rotation
+
+};
+
+#endif // BINARYSEARCHTREE_
