@@ -39,23 +39,20 @@ Node* BinarySearchTree::Insert(Node* node, const std::string& data) {
 
     // Get the balance factor
     int balance = getBalance(node);
+    cout << "Inserted " << data << ", Balance at node " << node->data << ": " << balance << endl;
 
     // If this node becomes unbalanced, there are 4 cases
-
     // Left Left Case
     if (balance > 1 && data < node->left->data)
         return rightRotate(node);
-
     // Right Right Case
     if (balance < -1 && data > node->right->data)
         return leftRotate(node);
-
     // Left Right Case
     if (balance > 1 && data > node->left->data) {
         node->left = leftRotate(node->left);
         return rightRotate(node);
     }
-
     // Right Left Case
     if (balance < -1 && data < node->right->data) {
         node->right = rightRotate(node->right);
@@ -101,21 +98,19 @@ Node* BinarySearchTree::RemoveHelper(Node* node, const std::string& data) {
 
     // Balance the node
     int balance = getBalance(node);
+    cout << "Removed " << data << ", Balance at node " << node->data << ": " << balance << endl;
 
     // Left Left Case
     if (balance > 1 && getBalance(node->left) >= 0)
         return rightRotate(node);
-
     // Left Right Case
     if (balance > 1 && getBalance(node->left) < 0) {
         node->left = leftRotate(node->left);
         return rightRotate(node);
     }
-
     // Right Right Case
     if (balance < -1 && getBalance(node->right) <= 0)
         return leftRotate(node);
-
     // Right Left Case
     if (balance < -1 && getBalance(node->right) > 0) {
         node->right = rightRotate(node->right);
@@ -236,24 +231,51 @@ void BinarySearchTree::PrintTreeHelper(Node* node, const std::string& order, int
     }
 }
 
+// Print balance factors of each node in the specified order
+void BinarySearchTree::PrintBalanceFactors(const std::string& order) const {
+    PrintBalanceFactorsHelper(root, order, 0);
+}
+
+// Recursive helper to print balance factors
+void BinarySearchTree::PrintBalanceFactorsHelper(Node* node, const std::string& order, int level) const {
+    if (node == nullptr) {
+        return;
+    }
+
+    if (order == "inorder") {
+        PrintBalanceFactorsHelper(node->left, order, level + 1);
+        cout << string(level * 2, ' ') << node->data << " (Balance: " << getBalance(node) << ")" << endl;
+        PrintBalanceFactorsHelper(node->right, order, level + 1);
+    }
+    else if (order == "preorder") {
+        cout << string(level * 2, ' ') << node->data << " (Balance: " << getBalance(node) << ")" << endl;
+        PrintBalanceFactorsHelper(node->left, order, level + 1);
+        PrintBalanceFactorsHelper(node->right, order, level + 1);
+    }
+    else if (order == "postorder") {
+        PrintBalanceFactorsHelper(node->left, order, level + 1);
+        PrintBalanceFactorsHelper(node->right, order, level + 1);
+        cout << string(level * 2, ' ') << node->data << " (Balance: " << getBalance(node) << ")" << endl;
+    }
+}
 int main() {
     BinarySearchTree bst;
-    bst.Insert("1");
-    bst.Insert("5");
-    bst.Insert("6");
-    bst.Insert("7");
-    bst.Insert("9");
-    bst.Insert("10");
-    bst.Insert("4");
-    bst.Insert("3");
-    bst.Insert("12");
+    bst.Insert("F");
+    bst.Insert("B");
+    bst.Insert("A");
+    bst.Insert("D");
+    bst.Insert("C");
+    bst.Insert("E");
+    bst.Insert("H");
+    bst.Insert("G");
+    bst.Insert("I");
 
-    std::cout << "Inorder traversal of the AVL tree is:\n";
-    bst.PrintTree("inorder");
+    std::cout << "Inorder traversal of the AVL tree with balance factors:\n";
+    bst.PrintBalanceFactors("inorder");
 
-    bst.Remove("5");
-    std::cout << "\nInorder traversal after removing B:\n";
-    bst.PrintTree("inorder");
+    bst.Remove("B");
+    std::cout << "\nInorder traversal after removing B with balance factors:\n";
+    bst.PrintBalanceFactors("inorder");
 
     return 0;
 }
