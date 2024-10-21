@@ -11,7 +11,7 @@ int main() {
 
     // Vector to hold the random numbers
     vector<int> randomNumbers;
-    srand(time(0));
+    srand(time(0)); // seeded it to the current time so that it always gets different values, wasnt sure what you meant in the lab description
 
 
     // Generate 50 random integers between 1 and 1000
