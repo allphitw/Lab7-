@@ -1,0 +1,157 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <random>
+#include <chrono>  // For timekeeping
+using namespace std;
+using namespace chrono;  // For easier chrono function access
+
+struct Node {
+    Node *left, *right;
+    string data;
+
+    Node(const string& data) : data(data), left(nullptr), right(nullptr) {}
+};
+
+class BinarySearchTree {
+public:
+    BinarySearchTree() : root(nullptr) {}  // Constructor
+    ~BinarySearchTree() { EmptyTree(); }   // Destructor
+    void Insert(const string& data) { root = Insert(root, data); }
+    string Find(const string& data) const { return Find(root, data); }
+    int Size() const { return SizeHelper(root); }
+    void EmptyTree() { root = EmptyTreeHelper(root); }
+    string Remove(const string& data) { return RemoveHelper(root, data); }
+    void PrintTree(const string& order) const { PrintTreeHelper(root, order, 0); }
+
+private:
+    Node* root;
+
+    Node* Insert(Node* node, const string& data) {
+        if (node == nullptr) {
+            return new Node(data);
+        }
+
+        if (data < node->data) {
+            node->left = Insert(node->left, data);
+        } else {
+            node->right = Insert(node->right, data);
+        }
+        return node;
+    }
+
+    string Find(Node* node, const string& data) const {
+        if (node == nullptr) {
+            return "";
+        }
+
+        if (data < node->data) {
+            return Find(node->left, data);
+        } else if (data > node->data) {
+            return Find(node->right, data);
+        } else {
+            return node->data;
+        }
+    }
+
+    int SizeHelper(Node* node) const {
+        if (node == nullptr) {
+            return 0;
+        }
+        return 1 + SizeHelper(node->left) + SizeHelper(node->right);
+    }
+
+    Node* EmptyTreeHelper(Node* node) {
+        if (node != nullptr) {
+            EmptyTreeHelper(node->left);
+            EmptyTreeHelper(node->right);
+            delete node;
+        }
+        return nullptr;
+    }
+
+    string RemoveHelper(Node* node, const string& data) {
+        if (node == nullptr) {
+            return "";
+        }
+
+        if (data < node->data) {
+            return RemoveHelper(node->left, data);
+        } else if (data > node->data) {
+            return RemoveHelper(node->right, data);
+        } else {
+            // Node with one or no children
+            if (node->left == nullptr || node->right == nullptr) {
+                Node* temp = node->left ? node->left : node->right;
+                delete node;
+                return temp ? temp->data : "";
+            }
+
+            // Node with two children
+            Node* successor = FindMin(node->right);
+            node->data = successor->data;
+            return RemoveHelper(node->right, successor->data);
+        }
+    }
+
+    Node* FindMin(Node* node) {
+        while (node->left != nullptr) {
+            node = node->left;
+        }
+        return node;
+    }
+
+    void PrintTreeHelper(Node* node, const string& order, int level) const {
+        if (node == nullptr) {
+            return;
+        }
+
+        if (order == "inorder") {
+            PrintTreeHelper(node->left, order, level + 1);
+            cout << string(level * 2, ' ') << node->data << endl;
+            PrintTreeHelper(node->right, order, level + 1);
+        } else if (order == "preorder") {
+            cout << string(level * 2, ' ') << node->data << endl;
+            PrintTreeHelper(node->left, order, level + 1);
+            PrintTreeHelper(node->right, order, level + 1);
+        } else if (order == "postorder") {
+            PrintTreeHelper(node->left, order, level + 1);
+            PrintTreeHelper(node->right, order, level + 1);
+            cout << string(level * 2, ' ') << node->data << endl;
+        }
+    }
+};
+
+int main() {
+    BinarySearchTree bst;
+
+    // Start time tracking
+    auto start = high_resolution_clock::now();
+
+    // Vector to hold the random numbers
+    vector<int> randomNumbers;
+    srand(time(0));  // Seed the random number generator with current time
+
+    // Generate 50 random integers between 1 and 1000
+    for (int i = 0; i < 50; i++) {
+        randomNumbers.push_back(rand() % 1000 + 1);  // Generate random numbers
+    }
+
+    // Insert each random number into the BST
+    for (int number : randomNumbers) {
+        bst.Insert(to_string(number));  // Insert as string to match Node class
+    }
+
+    // Print the tree in inorder traversal
+    cout << "Inorder traversal of the tree:" << endl;
+    bst.PrintTree("inorder");
+
+    // End time tracking
+    auto end = high_resolution_clock::now();
+
+    // Calculate the duration and output the result
+    auto duration = duration_cast<milliseconds>(end - start).count();  // Get duration in milliseconds
+    cout << "\nTime taken for the entire operation: " << duration << " milliseconds" << endl;
+
+    return 0;
+}
